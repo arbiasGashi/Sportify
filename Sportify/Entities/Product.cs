@@ -11,6 +11,6 @@ public class Product : BaseEntity
     public int ProductBrandId { get; set; }
 
     // Navigation Properties
-    public ProductType ProductType { get; set; }
-    public ProductBrand ProductBrand { get; set; }
+    public ProductType? ProductType { get; set; }
+    public ProductBrand? ProductBrand { get; set; }
 }
