@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Sportify.Data;
+using Infrastructure.Data;
 
 namespace Sportify;
 

@@ -2,17 +2,20 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Sportify.Data;
+using Infrastructure.Data;
 
 #nullable disable
 
-namespace Sportify.Migrations
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SportifyDbContext))]
-    partial class SportifyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240923155621_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -57,38 +60,6 @@ namespace Sportify.Migrations
                     b.HasIndex("ProductTypeId");
 
                     b.ToTable("Products");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Comfortable running shoes for all terrains.",
-                            Name = "Nike Running Shoes",
-                            PictureUrl = "http://example.com/nike-shoes.png",
-                            Price = 120.00m,
-                            ProductBrandId = 1,
-                            ProductTypeId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Lightweight and breathable sports jersey.",
-                            Name = "Adidas Sports Jersey",
-                            PictureUrl = "http://example.com/adidas-jersey.png",
-                            Price = 50.00m,
-                            ProductBrandId = 2,
-                            ProductTypeId = 2
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Professional-grade tennis racket.",
-                            Name = "Wilson Tennis Racket",
-                            PictureUrl = "http://example.com/wilson-racket.png",
-                            Price = 250.00m,
-                            ProductBrandId = 3,
-                            ProductTypeId = 3
-                        });
                 });
 
             modelBuilder.Entity("Sportify.Entities.ProductBrand", b =>
@@ -106,23 +77,6 @@ namespace Sportify.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ProductBrands");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Nike"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Adidas"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Wilson"
-                        });
                 });
 
             modelBuilder.Entity("Sportify.Entities.ProductType", b =>
@@ -140,23 +94,6 @@ namespace Sportify.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ProductTypes");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Footwear"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Apparel"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "Equipment"
-                        });
                 });
 
             modelBuilder.Entity("Sportify.Entities.Product", b =>

@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Core.Entities;
+using Infrastructure.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Sportify.Data;
-using Sportify.Entities;
 
 namespace Sportify.Controllers
 {

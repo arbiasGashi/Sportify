@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Sportify.Entities;
+using Core.Entities;
 
-namespace Sportify.Data;
+namespace Infrastructure.Data;
 
 public class SportifyDbContext : DbContext
 {

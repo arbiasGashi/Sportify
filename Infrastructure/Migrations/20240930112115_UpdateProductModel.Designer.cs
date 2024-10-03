@@ -4,15 +4,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Sportify.Data;
+using Infrastructure.Data;
 
 #nullable disable
 
-namespace Sportify.Migrations
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(SportifyDbContext))]
-    [Migration("20240923161949_SeedInitialData")]
-    partial class SeedInitialData
+    [Migration("20240930112115_UpdateProductModel")]
+    partial class UpdateProductModel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
