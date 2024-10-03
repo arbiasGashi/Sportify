@@ -1,4 +1,6 @@
-﻿namespace Sportify.Entities;
+﻿using Core.Entities;
+
+namespace Core.Entities;
 
 public class ProductType : BaseEntity
 {

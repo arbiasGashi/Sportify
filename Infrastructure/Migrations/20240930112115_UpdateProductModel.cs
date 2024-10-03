@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Sportify.Migrations
+namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
     public partial class UpdateProductModel : Migration
