@@ -1,5 +1,7 @@
-using Microsoft.EntityFrameworkCore;
+using Core.Interfaces;
 using Infrastructure.Data;
+using Infrastructure.Data.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Sportify;
 
@@ -11,13 +13,17 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllers();
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
         builder.Services.AddDbContext<SportifyDbContext>(
             opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("SportifyDb")));
+        builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
         var app = builder.Build();
+
+        // Get the logger from the DI container
+        var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
         // Configure the HTTP request pipeline and apply DB migrations if necessary
         if (app.Environment.IsDevelopment())
@@ -25,22 +31,31 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
 
-            await EnsureDatabaseIsMigrated(app.Services);
+            await EnsureDatabaseIsMigrated(app.Services, logger);
         }
 
         app.UseAuthorization();
         app.MapControllers();
-        app.Run();
+        await app.RunAsync();
     }
 
-    static async Task EnsureDatabaseIsMigrated(IServiceProvider services)
+    static async Task EnsureDatabaseIsMigrated(IServiceProvider services, ILogger<Program> logger)
     {
-        using var scope = services.CreateScope();
-        using var ctx = scope.ServiceProvider.GetService<SportifyDbContext>();
-
-        if (ctx is not null)
+        try
         {
-            await ctx.Database.MigrateAsync();
+            using var scope = services.CreateScope();
+            var ctx = scope.ServiceProvider.GetService<SportifyDbContext>();
+
+            if (ctx is not null)
+            {
+                await ctx.Database.MigrateAsync();
+                logger.LogInformation("Database migration completed successfully.");
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred during database migration.");
+            throw;
         }
     }
 }

@@ -1,12 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Core.Entities;
+﻿using Core.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Infrastructure.Data;
 
 public class SportifyDbContext : DbContext
 {
-    public SportifyDbContext(DbContextOptions<SportifyDbContext> options) : base(options) 
-    { 
+    private readonly ILogger<SportifyDbContext> _logger;
+
+    public SportifyDbContext(DbContextOptions<SportifyDbContext> options, ILogger<SportifyDbContext> logger) : base(options)
+    {
+        _logger = logger;
     }
 
     public DbSet<Product> Products { get; set; }
@@ -17,52 +22,60 @@ public class SportifyDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Seed data for ProductBrand
-        modelBuilder.Entity<ProductBrand>().HasData(
-            new ProductBrand { Id = 1, Name = "Nike" },
-            new ProductBrand { Id = 2, Name = "Adidas" },
-            new ProductBrand { Id = 3, Name = "Wilson" }
-        );
+        // Load data from JSON files
+        var productBrands = LoadSeedData<ProductBrand>("SeedData/brands.json", _logger);
+        var productTypes = LoadSeedData<ProductType>("SeedData/types.json", _logger);
+        var products = LoadSeedData<Product>("SeedData/products.json", _logger);
 
-        // Seed data for ProductType
-        modelBuilder.Entity<ProductType>().HasData(
-            new ProductType { Id = 1, Name = "Footwear" },
-            new ProductType { Id = 2, Name = "Apparel" },
-            new ProductType { Id = 3, Name = "Equipment" }
-        );
+        // Assign negative IDs for seed data
+        int brandId = -1;
+        foreach (var brand in productBrands)
+        {
+            brand.Id = brandId--;
+        }
 
-        // Seed data for Product
-        modelBuilder.Entity<Product>().HasData(
-            new Product
-            {
-                Id = 1,
-                Name = "Nike Running Shoes",
-                Description = "Comfortable running shoes for all terrains.",
-                Price = 120.00m,
-                PictureUrl = "http://example.com/nike-shoes.png",
-                ProductTypeId = 1,  // Footwear
-                ProductBrandId = 1   // Nike
-            },
-            new Product
-            {
-                Id = 2,
-                Name = "Adidas Sports Jersey",
-                Description = "Lightweight and breathable sports jersey.",
-                Price = 50.00m,
-                PictureUrl = "http://example.com/adidas-jersey.png",
-                ProductTypeId = 2,  // Apparel
-                ProductBrandId = 2   // Adidas
-            },
-            new Product
-            {
-                Id = 3,
-                Name = "Wilson Tennis Racket",
-                Description = "Professional-grade tennis racket.",
-                Price = 250.00m,
-                PictureUrl = "http://example.com/wilson-racket.png",
-                ProductTypeId = 3,  // Equipment
-                ProductBrandId = 3   // Wilson
-            }
-        );
+        int typeId = -1;
+        foreach (var type in productTypes)
+        {
+            type.Id = typeId--;
+        }
+
+        int productId = -1;
+        foreach (var product in products)
+        {
+            product.Id = productId--;
+        }
+
+        modelBuilder.Entity<ProductBrand>().HasData(productBrands);
+        modelBuilder.Entity<ProductType>().HasData(productTypes);
+        modelBuilder.Entity<Product>().HasData(products);
+    }
+
+    private List<T> LoadSeedData<T>(string filePath, ILogger logger) where T : class
+    {
+        // Get the current base path
+        var basePath = AppContext.BaseDirectory;
+
+        // Adjust the path relative to the Infrastructure folder
+        var fullPath = Path.Combine(basePath, "Data", filePath);
+
+        if (!File.Exists(fullPath))
+        {
+            logger.LogError($"File not found: {fullPath}");
+            throw new FileNotFoundException($"Could not find the JSON file at path: {fullPath}");
+        }
+
+        var jsonData = File.ReadAllText(fullPath);
+        var result = JsonSerializer.Deserialize<List<T>>(jsonData);
+
+        if (result == null)
+        {
+            logger.LogError($"Failed to deserialize JSON data from {filePath}");
+            logger.LogDebug($"Content of {filePath}: {jsonData}");
+
+            throw new InvalidOperationException($"Failed to deserialize JSON data from {filePath}");
+        }
+
+        return result;
     }
 }

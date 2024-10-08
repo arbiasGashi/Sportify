@@ -1,99 +1,86 @@
 ﻿using Core.Entities;
-using Infrastructure.Data;
+using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+namespace Sportify.Controllers;
 
-namespace Sportify.Controllers
+[Route("api/v1/[controller]")]
+[ApiController]
+public class ProductsController : ControllerBase
 {
-    [Route("api/v1/[controller]")]
-    [ApiController]
-    public class ProductsController : ControllerBase
+    private readonly IProductRepository _productRepository;
+
+    public ProductsController(IProductRepository productRepository)
     {
-        private readonly SportifyDbContext _context;
+        _productRepository = productRepository;
+    }
 
-        public ProductsController(SportifyDbContext context)
+    // GET: api/v1/products
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
+    {
+        var products = await _productRepository.GetAllAsync(p => p.ProductType, p => p.ProductBrand);
+        return Ok(products);
+    }
+
+    // GET: api/v1/products/{id}
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Product>> GetProductById(int id)
+    {
+        var product = await _productRepository.GetByIdAsync(id, p => p.ProductType, p => p.ProductBrand);
+
+        if (product == null)
         {
-            _context = context;
+            return NotFound();
         }
 
-        // GET: api/v1/products
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
+        return Ok(product);
+    }
+
+    // POST: api/v1/products
+    [HttpPost]
+    public async Task<ActionResult<Product>> CreateProduct([FromBody] Product newProduct)
+    {
+        await _productRepository.AddAsync(newProduct);
+        return CreatedAtAction(nameof(GetProductById), new { id = newProduct.Id }, newProduct);
+    }
+
+    // PUT: api/v1/products/{id}
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product updatedProduct)
+    {
+        var product = await _productRepository.GetByIdAsync(id);
+
+        if (product == null)
         {
-            var products = await _context.Products
-                                         .Include(p => p.ProductType)
-                                         .Include(p => p.ProductBrand)
-                                         .ToListAsync();
-            return Ok(products);
+            return NotFound();
         }
 
-        // GET: api/v1/products/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Product>> GetProductById(int id)
+        // Update product properties
+        product.Name = updatedProduct.Name;
+        product.Description = updatedProduct.Description;
+        product.Price = updatedProduct.Price;
+        product.PictureUrl = updatedProduct.PictureUrl;
+        product.ProductTypeId = updatedProduct.ProductTypeId;
+        product.ProductBrandId = updatedProduct.ProductBrandId;
+
+        await _productRepository.UpdateAsync(product);
+
+        return NoContent();
+    }
+
+    // DELETE: api/v1/products/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteProduct(int id)
+    {
+        var product = await _productRepository.GetByIdAsync(id);
+
+        if (product == null)
         {
-            var product = await _context.Products
-                                        .Include(p => p.ProductType)
-                                        .Include(p => p.ProductBrand)
-                                        .FirstOrDefaultAsync(p => p.Id == id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(product);
+            return NotFound();
         }
 
-        // POST: api/v1/products
-        [HttpPost]
-        public async Task<ActionResult<Product>> CreateProduct([FromBody] Product newProduct)
-        {
-            _context.Products.Add(newProduct);
-            await _context.SaveChangesAsync();
+        await _productRepository.DeleteAsync(product);
 
-            return CreatedAtAction(nameof(GetProductById), new { id = newProduct.Id }, newProduct);
-        }
-
-        // PUT: api/v1/products/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateProduct(int id, [FromBody] Product updatedProduct)
-        {
-            var product = await _context.Products.FindAsync(id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            // Update product properties
-            product.Name = updatedProduct.Name;
-            product.Description = updatedProduct.Description;
-            product.Price = updatedProduct.Price;
-            product.PictureUrl = updatedProduct.PictureUrl;
-            product.ProductTypeId = updatedProduct.ProductTypeId;
-            product.ProductBrandId = updatedProduct.ProductBrandId;
-
-            _context.Entry(product).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        // DELETE: api/v1/products/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduct(int id)
-        {
-            var product = await _context.Products.FindAsync(id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }
