@@ -1,5 +1,7 @@
 ﻿using Core.Entities;
 using Core.Interfaces;
+using Core.Interfaces.SpecificationInterfaces;
+using Infrastructure.Data.Specifications;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
@@ -53,5 +55,17 @@ public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
     {
         _context.Set<T>().Remove(entity);
         return Task.CompletedTask;
+    }
+
+    public async Task<IList<T>> GetAllWithSpecAsync(ISpecification<T> spec)
+    {
+        // Apply the specification to the query
+        var query = ApplySpecification(spec);
+        return await query.ToListAsync();
+    }
+
+    private IQueryable<T> ApplySpecification(ISpecification<T> spec)
+    {
+        return SpecificationEvaluator<T>.GetQuery(_context.Set<T>().AsQueryable(), spec);
     }
 }
