@@ -1,10 +1,9 @@
-﻿using Sportify.API.DTOs;
-using AutoMapper;
+﻿using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Core.Enums;
 using Core.Specifications;
+using Microsoft.AspNetCore.Mvc;
+using Sportify.API.DTOs;
 
 namespace Sportify.Controllers;
 
@@ -24,11 +23,15 @@ public class ProductsController : ControllerBase
     // GET: api/v1/products
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts(
-        string? searchTerm = null, string? brand = null, string? type = null,
-        int skip = 0, int take = 10, OrderBy orderBy = OrderBy.Ascending)
+        string? searchTerm = null,
+        string? brand = null,
+        string? type = null,
+        int skip = 0,
+        int take = 10,
+        string sort = "NameAsc")
     {
-        // Create the specification
-        var spec = new ProductSpecification(searchTerm, brand, type, skip, take, orderBy);
+        // Create the updated specification with the new sort parameter
+        var spec = new ProductSpecification(searchTerm, brand, type, skip, take, sort);
 
         // Fetch products using specification
         var products = await _productRepository.GetAllWithSpecAsync(spec);
@@ -43,6 +46,7 @@ public class ProductsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<ProductDTO>> GetProductById(int id)
     {
+        // Include related entities directly in the repository call
         var product = await _productRepository.GetByIdAsync(id, p => p.ProductType, p => p.ProductBrand);
 
         if (product == null)
