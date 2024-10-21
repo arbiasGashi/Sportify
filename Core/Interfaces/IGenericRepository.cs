@@ -1,4 +1,5 @@
 ﻿using Core.Entities;
+using Core.Interfaces.SpecificationInterfaces;
 using System.Linq.Expressions;
 
 namespace Core.Interfaces;
@@ -9,4 +10,7 @@ public interface IGenericRepository<T> where T : BaseEntity
     Task AddAsync(T entity);
     Task UpdateAsync(T entity);
     Task DeleteAsync(T entity);
+
+    // New method to fetch entities using specifications
+    Task<IList<T>> GetAllWithSpecAsync(ISpecification<T> spec);
 }

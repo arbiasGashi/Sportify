@@ -19,8 +19,20 @@ public class Program
             opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("SportifyDb")));
         builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         builder.Services.AddScoped<IProductRepository, ProductRepository>();
+        builder.Services.AddAutoMapper(typeof(Program));
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", builder =>
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader());
+        });
+
 
         var app = builder.Build();
+
+        app.UseCors("AllowAll");
 
         // Get the logger from the DI container
         var logger = app.Services.GetRequiredService<ILogger<Program>>();

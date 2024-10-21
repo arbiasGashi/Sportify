@@ -1,6 +1,11 @@
-﻿using Core.Entities;
+﻿using Sportify.API.DTOs;
+using AutoMapper;
+using Core.Entities;
 using Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Core.Enums;
+using Core.Specifications;
+
 namespace Sportify.Controllers;
 
 [Route("api/v1/[controller]")]
@@ -8,23 +13,35 @@ namespace Sportify.Controllers;
 public class ProductsController : ControllerBase
 {
     private readonly IProductRepository _productRepository;
+    private readonly IMapper _mapper;
 
-    public ProductsController(IProductRepository productRepository)
+    public ProductsController(IProductRepository productRepository, IMapper mapper)
     {
         _productRepository = productRepository;
+        _mapper = mapper;
     }
 
     // GET: api/v1/products
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Product>>> GetAllProducts()
+    public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts(
+        string? searchTerm = null, string? brand = null, string? type = null,
+        int skip = 0, int take = 10, OrderBy orderBy = OrderBy.Ascending)
     {
-        var products = await _productRepository.GetAllAsync(p => p.ProductType, p => p.ProductBrand);
-        return Ok(products);
+        // Create the specification
+        var spec = new ProductSpecification(searchTerm, brand, type, skip, take, orderBy);
+
+        // Fetch products using specification
+        var products = await _productRepository.GetAllWithSpecAsync(spec);
+
+        // Map products to ProductDTO
+        var productsToReturn = _mapper.Map<IList<ProductDTO>>(products);
+
+        return Ok(productsToReturn);
     }
 
     // GET: api/v1/products/{id}
     [HttpGet("{id}")]
-    public async Task<ActionResult<Product>> GetProductById(int id)
+    public async Task<ActionResult<ProductDTO>> GetProductById(int id)
     {
         var product = await _productRepository.GetByIdAsync(id, p => p.ProductType, p => p.ProductBrand);
 
@@ -33,7 +50,10 @@ public class ProductsController : ControllerBase
             return NotFound();
         }
 
-        return Ok(product);
+        // Map to ProductDTO
+        var productToReturn = _mapper.Map<ProductDTO>(product);
+
+        return Ok(productToReturn);
     }
 
     // POST: api/v1/products
