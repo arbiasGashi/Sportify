@@ -3,6 +3,7 @@ using Core.Interfaces.SpecificationInterfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data.Specifications;
+
 public class SpecificationEvaluator<TEntity> where TEntity : BaseEntity
 {
     public static IQueryable<TEntity> GetQuery(IQueryable<TEntity> inputQuery, ISpecification<TEntity> spec)
@@ -21,11 +22,9 @@ public class SpecificationEvaluator<TEntity> where TEntity : BaseEntity
         // Apply Sorting
         if (spec.OrderBy != null)
         {
-            query = query.OrderBy(spec.OrderBy);
-        }
-        else if (spec.OrderByDescending != null)
-        {
-            query = query.OrderByDescending(spec.OrderByDescending);
+            query = spec.OrderByDirection == Core.Enums.OrderBy.Ascending
+                ? query.OrderBy(spec.OrderBy)
+                : query.OrderByDescending(spec.OrderBy);
         }
 
         // Apply Paging
